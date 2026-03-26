@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { Json } from '@prisma/client';
-import prisma from '../../../../lib/prisma';
+import { prisma } from '../../../../lib/prisma';
 import { calculateNatalChart } from '../../../../lib/astrology';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

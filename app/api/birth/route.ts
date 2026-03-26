@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../../lib/prisma';
+import { prisma } from '../../../lib/prisma';
 import { calculateNatalChart } from '../../../lib/astrology';
 
 // 出生信息录入接口
