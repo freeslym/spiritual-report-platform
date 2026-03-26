@@ -64,7 +64,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900/40 text-white overflow-hidden">
+    <div className="min-h-screen bg-slate-950/80 text-white overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
         {/* Gradient orbs */}

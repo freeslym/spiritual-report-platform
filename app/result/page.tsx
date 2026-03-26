@@ -31,7 +31,7 @@ function ReportCard({ title, tag, content, delay = 0 }: { title: string; tag: st
       <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000" />
       
       {/* Glass card */}
-      <div className="relative flex flex-col h-full p-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl hover:border-white/20 transition-colors duration-500">
+      <div className="relative flex flex-col h-full p-8 bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-2xl hover:border-white/20 transition-colors duration-500">
         {/* Tag */}
         <div className="flex justify-between items-start mb-6">
           <span className="px-3 py-1 text-[10px] uppercase tracking-[0.2em] font-medium text-purple-300 border border-purple-500/30 rounded-full bg-purple-500/5">
@@ -110,7 +110,7 @@ export default function ResultPage() {
 
   if (!natalChart) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950/80 text-white flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-2 border-purple-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -121,7 +121,7 @@ export default function ResultPage() {
                        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 
   return (
-    <div className="min-h-screen bg-slate-900/40 text-white overflow-hidden">
+    <div className="min-h-screen bg-slate-950/80 text-white overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-[128px]" />
@@ -206,7 +206,7 @@ export default function ResultPage() {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="max-w-2xl mx-auto mb-16"
         >
-          <div className="p-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl">
+          <div className="p-8 bg-slate-950/80 backdrop-blur-xl border border-white/10 rounded-2xl">
             <h2 className="text-sm uppercase tracking-[0.2em] text-purple-300/70 mb-6">Your Free Preview</h2>
             
             <div className="space-y-4">
