@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { Json } from '@prisma/client';
 import { prisma } from '../../../../lib/prisma';
 import { calculateNatalChart } from '../../../../lib/astrology';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Lazy initialize Stripe to avoid build-time errors
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not defined');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-02-24.acacia',
+  });
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -16,7 +21,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err: any) {
     console.error('Webhook signature verification failed:', err.message);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -121,7 +126,7 @@ async function generateAIReports(reportId: string, productType: string) {
 }
 
 // 生成占星报告（这里接入AI模型）
-async function generateAstroReport(astroData: any): Promise<Json> {
+async function generateAstroReport(astroData: any): Promise<any> {
   // 这里应该调用AI模型生成报告
   // 为了演示，返回结构化的报告数据
   return {

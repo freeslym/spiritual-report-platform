@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SuccessPage() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [loading, setLoading] = useState(true);
@@ -12,15 +12,12 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (sessionId) {
-      // 验证支付状态
       verifyPayment();
     }
   }, [sessionId]);
 
   const verifyPayment = async () => {
     setLoading(true);
-    // 实际应该调用API验证Stripe session
-    // 这里模拟2秒后显示报告已就绪
     setTimeout(() => {
       setReportReady(true);
       setLoading(false);
@@ -28,53 +25,43 @@ export default function SuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-800 flex items-center justify-center px-4">
+      <div className="max-w-md w-full">
         {loading ? (
-          <>
-            <div className="w-16 h-16 mx-auto mb-6 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-            <h1 className="text-2xl font-light mb-4">Processing Your Payment</h1>
-            <p className="text-purple-300/70">Preparing your personalized Trinity Report...</p>
-          </>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-6"></div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Processing Payment...</h2>
+            <p className="text-gray-600">Please wait while we verify your order.</p>
+          </div>
         ) : reportReady ? (
-          <>
-            <div className="w-16 h-16 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center">
-              <span className="text-3xl">✓</span>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
             </div>
-            <h1 className="text-3xl font-light mb-4">
-              <span className="bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent">
-                Your Report is Ready!
-              </span>
-            </h1>
-            <p className="text-purple-300/70 mb-8">
-              Thank you for your purchase. Your personalized Trinity Report has been generated.
-            </p>
-            <Link
-              href="/report"
-              className="inline-block px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-medium text-lg
-                       hover:from-purple-500 hover:to-pink-500 transition-all"
-            >
-              View My Report
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful! 🎉</h2>
+            <p className="text-gray-600 mb-6">Your spiritual report is ready. Check your email for the download link.</p>
+            <Link href="/" className="inline-block bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 transition">
+              Generate Another Report
             </Link>
-          </>
-        ) : (
-          <>
-            <div className="w-16 h-16 mx-auto mb-6 bg-red-500/20 rounded-full flex items-center justify-center">
-              <span className="text-3xl">!</span>
-            </div>
-            <h1 className="text-2xl font-light mb-4 text-red-300">Payment Verification Failed</h1>
-            <p className="text-purple-300/70 mb-8">
-              We couldn't verify your payment. Please contact support if this persists.
-            </p>
-            <Link
-              href="/"
-              className="inline-block px-8 py-4 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-all"
-            >
-              Return Home
-            </Link>
-          </>
-        )}
+          </div>
+        ) : null}
       </div>
     </div>
+  );
+}
+
+export const dynamic = 'force-dynamic';
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-800 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }

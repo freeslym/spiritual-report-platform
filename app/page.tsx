@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,12 +16,15 @@ export default function HomePage() {
     birthCity: '',
   });
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // 调用地理编码API获取经纬度
       const geoResponse = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formData.birthCity)}&key=${process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY || ''}`
       );
@@ -32,7 +37,6 @@ export default function HomePage() {
         return;
       }
 
-      // 调用出生信息API
       const response = await fetch('/api/birth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +50,6 @@ export default function HomePage() {
       const data = await response.json();
       
       if (data.success) {
-        // 保存到localStorage
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('natalChart', JSON.stringify(data.natalChart));
         localStorage.setItem('freeSummary', JSON.stringify(data.freeSummary));
@@ -61,94 +64,141 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
-        <div className="container mx-auto px-4 py-20 relative">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-7xl font-light mb-4 tracking-tight">
-              <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
-                Trinity
-              </span>
-            </h1>
-            <p className="text-xl text-purple-200/80 max-w-2xl mx-auto">
-              Astrology · Human Design · Gene Keys
-            </p>
-            <p className="text-purple-300/60 mt-4 max-w-xl mx-auto text-sm">
-              Three ancient wisdom traditions, one unified digital experience. 
-              Discover your authentic self through the convergence of stars, design, and transformation.
-            </p>
+    <div className="min-h-screen bg-slate-900/40 text-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        {/* Gradient orbs */}
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/30 rounded-full blur-[128px] animate-pulse-slow" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-pink-600/20 rounded-full blur-[128px] animate-pulse-slow animation-delay-2000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[160px]" />
+        
+        {/* Stars */}
+        <div className="absolute inset-0" id="stars-container" />
+        
+        {/* Grid overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Hero Section */}
+        <div className={`flex-1 flex flex-col items-center justify-center px-4 py-20 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="w-20 h-20 mx-auto mb-6 relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl blur-lg opacity-50" />
+              <div className="relative w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">✧</span>
+              </div>
+            </div>
           </div>
 
-          {/* Input Form */}
+          {/* Title */}
+          <h1 className="text-6xl md:text-8xl font-light mb-4 text-center tracking-tight">
+            <span className="bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent animate-shimmer bg-[length:200%_100%] font-serif">
+              Trinity
+            </span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-purple-200/80 mb-2 text-center font-light tracking-widest uppercase">
+            Astrology · Human Design · Gene Keys
+          </p>
+          
+          <p className="text-purple-300/50 max-w-lg text-center text-sm leading-relaxed mt-4">
+            Three ancient wisdom traditions. One unified digital experience.
+            <br className="hidden md:block" />
+            Discover your authentic self through the convergence of stars, design, and transformation.
+          </p>
+
+          {/* Features Pills */}
+          <div className="flex flex-wrap justify-center gap-3 mt-10">
+            {['Natal Chart Analysis', 'BodyGraph Reading', 'Gene Keys Journey'].map((item, i) => (
+              <span 
+                key={i}
+                className={`px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-purple-200/70 backdrop-blur-sm transition-all duration-500 hover:bg-white/10 hover:border-white/20 ${mounted ? 'opacity-100' : 'opacity-0'}`}
+                style={{ transitionDelay: `${i * 100 + 300}ms` }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <div className={`px-4 pb-20 transition-all duration-1000 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="max-w-md mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-purple-200/80 text-sm mb-2">Your Name</label>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="group">
+                <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em] font-light">Your Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 bg-white/5 border border-purple-500/20 rounded-xl 
-                           focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 
-                           outline-none transition-all text-white placeholder-purple-300/30"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                           focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                           outline-none transition-all duration-300 text-white placeholder-purple-300/20
+                           group-hover:bg-white/10 group-hover:border-white/20"
                   placeholder="Enter your name"
                 />
               </div>
 
-              <div>
-                <label className="block text-purple-200/80 text-sm mb-2">Email</label>
+              <div className="group">
+                <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Email</label>
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-3 bg-white/5 border border-purple-500/20 rounded-xl 
-                           focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 
-                           outline-none transition-all text-white placeholder-purple-300/30"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                           focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                           outline-none transition-all duration-300 text-white placeholder-purple-300/20
+                           group-hover:bg-white/10 group-hover:border-white/20"
                   placeholder="your@email.com"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-purple-200/80 text-sm mb-2">Birth Date</label>
+                <div className="group">
+                  <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Birth Date</label>
                   <input
                     type="date"
                     required
                     value={formData.birthDate}
                     onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/5 border border-purple-500/20 rounded-xl 
-                             focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 
-                             outline-none transition-all text-white"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                             focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                             outline-none transition-all duration-300 text-white
+                             group-hover:bg-white/10 group-hover:border-white/20"
                   />
                 </div>
-                <div>
-                  <label className="block text-purple-200/80 text-sm mb-2">Birth Time</label>
+                <div className="group">
+                  <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Birth Time</label>
                   <input
                     type="time"
                     required
                     value={formData.birthTime}
                     onChange={(e) => setFormData({...formData, birthTime: e.target.value})}
-                    className="w-full px-4 py-3 bg-white/5 border border-purple-500/20 rounded-xl 
-                             focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 
-                             outline-none transition-all text-white"
+                    className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                             focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                             outline-none transition-all duration-300 text-white
+                             group-hover:bg-white/10 group-hover:border-white/20"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-purple-200/80 text-sm mb-2">Birth City</label>
+              <div className="group">
+                <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Birth City</label>
                 <input
                   type="text"
                   required
                   value={formData.birthCity}
                   onChange={(e) => setFormData({...formData, birthCity: e.target.value})}
-                  className="w-full px-4 py-3 bg-white/5 border border-purple-500/20 rounded-xl 
-                           focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 
-                           outline-none transition-all text-white placeholder-purple-300/30"
+                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                           focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                           outline-none transition-all duration-300 text-white placeholder-purple-300/20
+                           group-hover:bg-white/10 group-hover:border-white/20"
                   placeholder="e.g. San Francisco, CA"
                 />
               </div>
@@ -156,64 +206,66 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl 
-                         font-medium text-lg shadow-lg shadow-purple-500/25
-                         hover:from-purple-500 hover:to-pink-500 
-                         transform hover:scale-[1.02] transition-all duration-200
-                         disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full py-5 mt-4 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient rounded-2xl 
+                         font-medium text-lg shadow-2xl shadow-purple-900/50
+                         hover:shadow-purple-500/30 hover:scale-[1.02] 
+                         transform transition-all duration-300
+                         disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                         relative overflow-hidden"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                    </svg>
-                    Calculating...
-                  </span>
-                ) : (
-                  'Reveal My Trinity Map'
-                )}
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                      </svg>
+                      <span>Calculating your cosmic blueprint...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Reveal My Trinity Map</span>
+                      <span className="text-lg">→</span>
+                    </>
+                  )}
+                </span>
               </button>
             </form>
 
-            {/* Free Preview */}
-            <div className="mt-8 p-6 bg-white/5 rounded-2xl border border-purple-500/10">
-              <p className="text-center text-purple-300/60 text-sm">
-                <span className="text-purple-400">Free:</span> Get your Natal Chart + 3 personalized insights instantly. 
-                Unlock full reports starting at <span className="text-purple-400">$19.99</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mt-20 max-w-4xl mx-auto">
-            {[
-              { 
-                title: 'Astrology', 
-                desc: 'Ancient star wisdom decoded for the modern seeker',
-                icon: '☿'
-              },
-              { 
-                title: 'Human Design', 
-                desc: 'Your body\'s operating manual revealed',
-                icon: '◎'
-              },
-              { 
-                title: 'Gene Keys', 
-                desc: 'The path from shadow to gift to悉地',
-                icon: '✧'
-              },
-            ].map((feature, i) => (
-              <div key={i} className="text-center p-6 bg-white/5 rounded-2xl border border-purple-500/10
-                                   hover:border-purple-500/30 transition-colors">
-                <div className="text-4xl mb-3">{feature.icon}</div>
-                <h3 className="text-lg font-medium text-purple-200 mb-2">{feature.title}</h3>
-                <p className="text-purple-300/60 text-sm">{feature.desc}</p>
+            {/* Free Preview Badge */}
+            <div className="mt-8 p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <span className="text-purple-200/60">Free:</span>
+                <span className="text-purple-200">Natal Chart + 3 Personalized Insights</span>
               </div>
-            ))}
+              <div className="text-center mt-2 text-purple-300/40 text-xs">
+                Full reports from <span className="text-purple-300">$19.99</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-pulse-slow { animation: pulse-slow 8s ease-in-out infinite; }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animate-shimmer { animation: shimmer 3s linear infinite; }
+        .animate-gradient { background-size: 200% 200%; animation: gradient 3s ease infinite; }
+      `}</style>
     </div>
   );
 }

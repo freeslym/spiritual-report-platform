@@ -2,6 +2,70 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+
+const fadeInUp = {
+  initial: { opacity: 0, y: 30 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.15
+    }
+  }
+};
+
+function ReportCard({ title, tag, content, delay = 0 }: { title: string; tag: string; content: string; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay }}
+      viewport={{ once: true }}
+      className="relative group cursor-pointer"
+    >
+      {/* Background glow */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000" />
+      
+      {/* Glass card */}
+      <div className="relative flex flex-col h-full p-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl hover:border-white/20 transition-colors duration-500">
+        {/* Tag */}
+        <div className="flex justify-between items-start mb-6">
+          <span className="px-3 py-1 text-[10px] uppercase tracking-[0.2em] font-medium text-purple-300 border border-purple-500/30 rounded-full bg-purple-500/5">
+            {tag}
+          </span>
+          <div className="text-white/20 group-hover:text-purple-300/50 transition-colors">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 3v18M3 12h18" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Title - Serif font */}
+        <h3 className="text-2xl font-serif text-slate-100 mb-4 leading-snug tracking-wide">
+          {title}
+        </h3>
+
+        {/* Content */}
+        <p className="text-slate-400 text-sm leading-relaxed mb-6 font-light">
+          {content}
+        </p>
+
+        {/* CTA */}
+        <div className="mt-auto flex items-center text-xs font-medium text-purple-400 group-hover:text-purple-300 transition-colors">
+          <span>Explore Deep Blueprint</span>
+          <svg className="ml-2 w-3 h-3 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function ResultPage() {
   const router = useRouter();
@@ -46,7 +110,7 @@ export default function ResultPage() {
 
   if (!natalChart) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-spin h-8 w-8 border-2 border-purple-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -57,157 +121,193 @@ export default function ResultPage() {
                        'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
-      <div className="container mx-auto px-4 py-12">
+    <div className="min-h-screen bg-slate-900/40 text-white overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-[128px]" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-pink-600/15 rounded-full blur-[128px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      </div>
+
+      <div className="relative z-10 container mx-auto px-4 py-16">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-light mb-4">
-            <span className="bg-gradient-to-r from-purple-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
+        <motion.div 
+          initial="initial"
+          animate="animate"
+          variants={staggerContainer}
+          className="text-center mb-16"
+        >
+          <motion.h1 
+            variants={fadeInUp}
+            className="text-5xl md:text-6xl font-light mb-4 tracking-tight"
+          >
+            <span className="font-serif bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">
               Your Trinity Map
             </span>
-          </h1>
-          <p className="text-purple-300/70">Three ancient wisdom traditions, one unified you</p>
-        </div>
+          </motion.h1>
+          <motion.p 
+            variants={fadeInUp}
+            className="text-purple-300/60 text-lg font-light tracking-widest uppercase"
+          >
+            Astrology · Human Design · Gene Keys
+          </motion.p>
+        </motion.div>
 
-        {/* Natal Chart Visualization */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <div className="relative aspect-square bg-slate-900/50 rounded-full border border-purple-500/20 p-8">
-            {/* Sun */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center">
-              <div className="w-8 h-8 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50" />
-              <span className="text-xs mt-1 text-yellow-300">☉</span>
-            </div>
+        {/* Natal Chart Circle */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="max-w-xl mx-auto mb-16"
+        >
+          <div className="relative aspect-square">
+            {/* Outer ring */}
+            <div className="absolute inset-8 border border-white/10 rounded-full" />
+            <div className="absolute inset-16 border border-white/5 rounded-full" />
             
-            {/* Moon */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center">
-              <div className="w-6 h-6 bg-slate-200 rounded-full shadow-lg shadow-slate-200/30" />
-              <span className="text-xs mt-1 text-slate-300">☽</span>
-            </div>
-
-            {/* Ascendant */}
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center">
-              <div className="w-5 h-5 bg-purple-400 rounded-full border-2 border-purple-300" />
-              <span className="text-xs mt-1 text-purple-300">↑</span>
-            </div>
-
-            {/* Inner ring - zodiac */}
-            <div className="absolute inset-8 rounded-full border border-purple-500/10" />
-            
-            {/* Center info */}
+            {/* Center */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-3xl mb-2">☉</div>
-                <div className="text-sm text-purple-300">
-                  {zodiacSigns[planets.sun.sign]}
-                </div>
-                <div className="text-xs text-purple-400/60">
-                  {planets.sun.signDegree.toFixed(1)}°
-                </div>
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full shadow-lg shadow-yellow-400/30" />
+                <p className="text-yellow-300 text-xs mt-2 tracking-widest">☉ SUN</p>
               </div>
             </div>
-          </div>
 
-          {/* Planet Details */}
-          <div className="grid grid-cols-3 gap-4 mt-8">
-            {[
-              { planet: '☉', name: 'Sun', data: planets.sun, color: 'yellow' },
-              { planet: '☽', name: 'Moon', data: planets.moon, color: 'slate' },
-              { planet: '↑', name: 'Asc', data: { sign: Math.floor(natalChart.ascendant / 30), signDegree: natalChart.ascendant % 30 }, color: 'purple' },
-            ].map((item) => (
-              <div key={item.name} className="bg-white/5 rounded-xl p-4 border border-purple-500/10 text-center">
-                <div className={`text-${item.color}-400 text-xl mb-1`}>{item.planet}</div>
-                <div className="text-purple-200 text-sm">{item.name}</div>
-                <div className="text-purple-300/70 text-xs mt-1">
-                  {zodiacSigns[item.data.sign]}
+            {/* Planets positioned around */}
+            {Object.entries(planets).slice(0, 7).map(([name, data]: [string, any], i: number) => {
+              const angle = (i * 45 - 90) * (Math.PI / 180);
+              const radius = 35;
+              const x = 50 + radius * Math.cos(angle);
+              const y = 50 + radius * Math.sin(angle);
+              const sign = zodiacSigns[data.sign] || 'Aries';
+              
+              return (
+                <div 
+                  key={name}
+                  className="absolute transform -translate-x-1/2 -translate-y-1/2"
+                  style={{ left: `${x}%`, top: `${y}%` }}
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="w-3 h-3 bg-purple-400 rounded-full shadow-lg shadow-purple-400/50" />
+                    <span className="text-[8px] text-purple-300/70 mt-1 whitespace-nowrap capitalize">
+                      {sign} {data.signDegree?.toFixed(0)}°
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
+        </motion.div>
 
         {/* Free Summary */}
-        <div className="max-w-2xl mx-auto mb-12">
-          <h2 className="text-2xl font-light text-center mb-6 text-purple-200">Your Free Insights</h2>
-          <div className="space-y-4">
-            {freeSummary.map((insight, i) => (
-              <div key={i} className="bg-white/5 rounded-xl p-6 border border-purple-500/10">
-                <p className="text-purple-100 leading-relaxed">{insight}</p>
-              </div>
-            ))}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="max-w-2xl mx-auto mb-16"
+        >
+          <div className="p-8 bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl">
+            <h2 className="text-sm uppercase tracking-[0.2em] text-purple-300/70 mb-6">Your Free Preview</h2>
+            
+            <div className="space-y-4">
+              {freeSummary.map((item: string, i: number) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + i * 0.1 }}
+                  className="flex items-start gap-4"
+                >
+                  <span className="text-purple-400">✦</span>
+                  <p className="text-slate-300 font-light leading-relaxed">{item}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Pricing / Paywall */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-light text-center mb-8 text-purple-200">
-            Unlock Your Full Trinity Report
-          </h2>
-          
+        {/* Full Report Cards */}
+        <motion.div 
+          initial="initial"
+          animate="animate"
+          variants={staggerContainer}
+          className="max-w-4xl mx-auto mb-16"
+        >
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Bundle */}
-            <div className="bg-gradient-to-b from-purple-900/40 to-slate-900/40 rounded-2xl p-6 border border-purple-500/30 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-xs px-3 py-1 rounded-full">
-                Best Value
+            <ReportCard 
+              tag="Ancient Wisdom"
+              title="Natal Chart"
+              content="Your complete birth chart reveals the cosmic blueprint of your soul. Discover your Sun, Moon, and Rising signs, along with planetary placements that shape your destiny."
+              delay={0.1}
+            />
+            <ReportCard 
+              tag="Body Knowledge"
+              title="Human Design"
+              content="Learn your type, strategy, and authority. Understand how you make decisions and interact with the world around you."
+              delay={0.2}
+            />
+            <ReportCard 
+              tag="Transformation"
+              title="Gene Keys"
+              content="Unlock the shadow, gift, and siddha dimensions of your 64 gene keys. Journey from limitation to liberation."
+              delay={0.3}
+            />
+          </div>
+        </motion.div>
+
+        {/* Pricing */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="max-w-md mx-auto"
+        >
+          <div className="relative p-8 bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-xl border border-purple-500/30 rounded-2xl">
+            {/* Glow effect */}
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-2xl blur opacity-50" />
+            
+            <div className="relative text-center">
+              <h3 className="font-serif text-2xl text-white mb-2">Unlock Full Trinity Report</h3>
+              <p className="text-slate-400 text-sm mb-6 font-light">Three comprehensive reports, unified insights</p>
+              
+              <div className="text-4xl font-light text-white mb-6">
+                <span className="text-xl align-top">$</span>39<span className="text-lg text-slate-500">.99</span>
               </div>
-              <h3 className="text-lg font-medium text-purple-200 mb-2">Complete Trinity</h3>
-              <div className="text-3xl font-light mb-4">$39.99</div>
-              <ul className="text-sm text-purple-300/70 space-y-2 mb-6">
-                <li>✓ Full Astrology Report</li>
-                <li>✓ Complete Human Design</li>
-                <li>✓ Gene Keys Journey</li>
-                <li>✓ Module Interlinking</li>
-              </ul>
+              
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center gap-3 text-slate-300 text-sm font-light">
+                  <span className="text-purple-400">✓</span> Complete Natal Chart Analysis
+                </div>
+                <div className="flex items-center gap-3 text-slate-300 text-sm font-light">
+                  <span className="text-purple-400">✓</span> Human Design BodyGraph Reading
+                </div>
+                <div className="flex items-center gap-3 text-slate-300 text-sm font-light">
+                  <span className="text-purple-400">✓</span> Gene Keys Activation Journey
+                </div>
+                <div className="flex items-center gap-3 text-slate-300 text-sm font-light">
+                  <span className="text-purple-400">✓</span> PDF Download
+                </div>
+              </div>
+              
               <button
                 onClick={() => handlePurchase('bundle')}
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-medium
-                         hover:from-purple-500 hover:to-pink-500 transition-all disabled:opacity-50"
+                className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl font-medium text-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-[1.02] transform transition-all duration-300"
               >
-                {loading ? 'Loading...' : 'Get All Three'}
-              </button>
-            </div>
-
-            {/* Astrology Only */}
-            <div className="bg-white/5 rounded-2xl p-6 border border-purple-500/20">
-              <h3 className="text-lg font-medium text-purple-200 mb-2">Astrology Only</h3>
-              <div className="text-3xl font-light mb-4">$19.99</div>
-              <ul className="text-sm text-purple-300/70 space-y-2 mb-6">
-                <li>✓ Natal Chart Deep Dive</li>
-                <li>✓ Planet & House Analysis</li>
-                <li>✓ Major Aspects</li>
-              </ul>
-              <button
-                onClick={() => handlePurchase('astro')}
-                disabled={loading}
-                className="w-full py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-all disabled:opacity-50"
-              >
-                {loading ? 'Loading...' : 'Get Astrology'}
-              </button>
-            </div>
-
-            {/* Other */}
-            <div className="bg-white/5 rounded-2xl p-6 border border-purple-500/20">
-              <h3 className="text-lg font-medium text-purple-200 mb-2">HD + Gene Keys</h3>
-              <div className="text-3xl font-light mb-4">$29.99</div>
-              <ul className="text-sm text-purple-300/70 space-y-2 mb-6">
-                <li>✓ Human Design Analysis</li>
-                <li>✓ Gene Keys Mapping</li>
-                <li>✓ Cross-System Insights</li>
-              </ul>
-              <button
-                onClick={() => handlePurchase('bundle')}
-                disabled={loading}
-                className="w-full py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition-all disabled:opacity-50"
-              >
-                {loading ? 'Loading...' : 'Get Both'}
+                {loading ? 'Processing...' : 'Unlock My Report'}
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Footer */}
-        <div className="text-center mt-16 text-purple-400/40 text-sm">
-          <p>Secure payments powered by Stripe · Cancel anytime</p>
+        <div className="text-center mt-16 text-slate-500 text-sm">
+          <button 
+            onClick={() => router.push('/')}
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+          >
+            ← Generate New Map
+          </button>
         </div>
       </div>
     </div>
