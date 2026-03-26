@@ -1,0 +1,79 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户表
+model User {
+  id            String    @id @default(uuid())
+  email         String?   @unique
+  name          String?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  // 第三方登录
+  googleId      String?   @unique
+  appleId       String?   @unique
+  // 用户的出生信息（保存下来不用重复输入）
+  birthDate     DateTime?
+  birthTime     String?
+  birthCity     String?
+  birthLatitude Float?
+  birthLongitude Float?
+  birthTimezone String?
+  // 订单和报告
+  orders        Order[]
+  reports       Report[]
+}
+
+// 订单表
+model Order {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSessionId   String    @unique
+  stripePaymentIntentId String?
+  amount            Int       // 单位：分
+  currency          String    @default("usd")
+  status            String    @default("pending") // pending/succeeded/failed/refunded
+  productType       String    // bundle/astro/human-design/gene-keys
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  report            Report?
+}
+
+// 报告表
+model Report {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId           String?
+  order             Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  // 核心计算数据
+  birthData         Json      // 出生信息+经纬度时区
+  astroData         Json      // 占星计算结果
+  humanDesignData   Json      // 人类图计算结果
+  geneKeysData      Json      // 基因天命计算结果
+  // AI生成的报告内容
+  astroReport       Json?     // 占星解析
+  humanDesignReport Json?     // 人类图解析
+  geneKeysReport    Json?     // 基因天命解析
+  // 状态
+  status            String    @default("generating") // generating/completed/failed
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// 全局配置表
+model Config {
+  id        String  @id @default(uuid())
+  key       String  @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
