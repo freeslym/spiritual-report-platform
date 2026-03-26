@@ -17,7 +17,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "stripe": "^17.3.1",
-    "swisseph": "^2.10.3",
+    "swisseph": "^0.5.17",
     "zustand": "^5.0.1"
   },
   "devDependencies": {

@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
   images: {
     domains: ['images.unsplash.com'],
+  },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('swisseph');
+    }
+    return config;
   },
 };
 

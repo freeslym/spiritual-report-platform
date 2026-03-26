@@ -52,7 +52,7 @@ model Report {
   id                String    @id @default(uuid())
   userId            String
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId           String?
+  orderId           String?   @unique
   order             Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   // 核心计算数据
   birthData         Json      // 出生信息+经纬度时区
