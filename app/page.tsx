@@ -25,11 +25,12 @@ export default function HomePage() {
     setLoading(true);
 
     try {
+      // Use OpenStreetMap Nominatim API (free, no API key required)
       const geoResponse = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formData.birthCity)}&key=${process.env.NEXT_PUBLIC_GOOGLE_GEOCODING_API_KEY || ''}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.birthCity)}&limit=1`
       );
       const geoData = await geoResponse.json();
-      const location = geoData.results?.[0]?.geometry?.location;
+      const location = geoData[0]?.lat ? { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) } : null;
 
       if (!location) {
         alert('Could not find location. Please try a different city name.');
@@ -119,10 +120,21 @@ export default function HomePage() {
                 className={`px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-purple-200/70 backdrop-blur-sm transition-all duration-500 hover:bg-white/10 hover:border-white/20 ${mounted ? 'opacity-100' : 'opacity-0'}`}
                 style={{ transitionDelay: `${i * 100 + 300}ms` }}
               >
-                {item}
+              {item}
               </span>
             ))}
           </div>
+
+          {/* View Example Button */}
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            onClick={() => router.push('/example')}
+            className="mt-6 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm text-purple-200/70 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 hover:text-purple-200 transition-all duration-300"
+          >
+            View Example Report →
+          </motion.button>
         </div>
 
         {/* Form Section */}

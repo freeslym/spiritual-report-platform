@@ -1,16 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
-import { prisma } from '../../../lib/prisma';
-
-// Lazy initialize Stripe to avoid build-time errors
-function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not defined');
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-02-24.acacia',
-  });
-}
 
 const PRODUCTS = {
   bundle: {
@@ -42,47 +30,18 @@ export async function POST(request: NextRequest) {
 
     const product = PRODUCTS[productType as keyof typeof PRODUCTS] || PRODUCTS.bundle;
 
-    // 创建Stripe Checkout Session
-    const session = await getStripe().checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: product.name,
-              description: product.description,
-            },
-            unit_amount: product.price,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/report/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/report/cancel`,
-      metadata: {
-        userId,
-        productType,
-      },
-      customer_email: undefined, // Let Stripe handle email collection
-    });
+    // 模拟支付模式：直接返回成功页 URL
+    const mockSessionId = `mock_session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/report/success?session_id=${mockSessionId}`;
 
-    // 创建订单记录
-    await prisma.order.create({
-      data: {
-        userId,
-        stripeSessionId: session.id,
-        amount: product.price,
-        currency: 'usd',
-        status: 'pending',
-        productType,
-      },
-    });
+    console.log(`[MOCK PAYMENT] Simulated successful payment for user ${userId}, product ${productType}`);
 
-    return NextResponse.json({ success: true, url: session.url });
+    return NextResponse.json({
+      success: true,
+      checkoutUrl: successUrl,
+    });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
+    console.error('Checkout error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create checkout session' },
       { status: 500 }

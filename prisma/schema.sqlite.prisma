@@ -53,15 +53,15 @@ model Report {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   orderId           String?   @unique
   order             Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  // 核心计算数据 - 使用String存储JSON
-  birthData                 String?   @default("{}")
-  astroData             String?   @default("{}")
-  humanDesignData   String?   @default("{}")
-  geneKeysData      String?   @default("{}")
+  // 核心计算数据
+  birthData         Json      // 出生信息+经纬度时区
+  astroData         Json      // 占星计算结果
+  humanDesignData   Json      // 人类图计算结果
+  geneKeysData      Json      // 基因天命计算结果
   // AI生成的报告内容
-  astroReport       String?   @default("{}")
-  humanDesignReport String?   @default("{}")
-  geneKeysReport    String?   @default("{}")
+  astroReport       Json?     // 占星解析
+  humanDesignReport Json?     // 人类图解析
+  geneKeysReport    Json?     // 基因天命解析
   // 状态
   status            String    @default("generating") // generating/completed/failed
   createdAt         DateTime  @default(now())
@@ -72,7 +72,7 @@ model Report {
 model Config {
   id        String  @id @default(uuid())
   key       String  @unique
-  value     String  @default("{}")
+  value     String  @default("{}")  // SQLite Json support limited, use String for now
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
