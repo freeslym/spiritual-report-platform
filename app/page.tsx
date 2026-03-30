@@ -25,12 +25,49 @@ export default function HomePage() {
     setLoading(true);
 
     try {
-      // Use OpenStreetMap Nominatim API (free, no API key required)
-      const geoResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.birthCity)}&limit=1`
-      );
-      const geoData = await geoResponse.json();
-      const location = geoData[0]?.lat ? { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) } : null;
+      // 本地常用城市列表作为后备方案（先尝试本地匹配，避免API限制）
+      const localCities: Record<string, { lat: number; lng: number; tz: number }> = {
+        "beijing": { lat: 39.9042, lng: 116.4074, tz: 8 },
+        "北京": { lat: 39.9042, lng: 116.4074, tz: 8 },
+        "shanghai": { lat: 31.2304, lng: 121.4737, tz: 8 },
+        "上海": { lat: 31.2304, lng: 121.4737, tz: 8 },
+        "new york": { lat: 40.7128, lng: -74.0060, tz: -5 },
+        "纽约": { lat: 40.7128, lng: -74.0060, tz: -5 },
+        "london": { lat: 51.5074, lng: -0.1278, tz: 0 },
+        "伦敦": { lat: 51.5074, lng: -0.1278, tz: 0 },
+        "tokyo": { lat: 35.6762, lng: 139.6503, tz: 9 },
+        "东京": { lat: 35.6762, lng: 139.6503, tz: 9 },
+        "los angeles": { lat: 34.0522, lng: -118.2437, tz: -8 },
+        "洛杉矶": { lat: 34.0522, lng: -118.2437, tz: -8 },
+        "paris": { lat: 48.8566, lng: 2.3522, tz: 1 },
+        "巴黎": { lat: 48.8566, lng: 2.3522, tz: 1 },
+        "singapore": { lat: 1.3521, lng: 103.8198, tz: 8 },
+        "新加坡": { lat: 1.3521, lng: 103.8198, tz: 8 },
+        "hong kong": { lat: 22.3193, lng: 114.1694, tz: 8 },
+        "香港": { lat: 22.3193, lng: 114.1694, tz: 8 },
+        "sydney": { lat: -33.8688, lng: 151.2093, tz: 10 },
+        "悉尼": { lat: -33.8688, lng: 151.2093, tz: 10 }
+      };
+      
+      const lowerCity = formData.birthCity.toLowerCase().trim();
+      let location = localCities[lowerCity] ? { 
+        lat: localCities[lowerCity].lat, 
+        lng: localCities[lowerCity].lng 
+      } : null;
+
+      // 本地没找到，再尝试 Nominatim API
+      if (!location) {
+        const geoResponse = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.birthCity)}&limit=1`,
+          {
+            headers: {
+              "User-Agent": "Trinity-Report-Platform/1.0 (agent@openclaw.ai)" // Nominatim 要求必须有 User-Agent
+            }
+          }
+        );
+        const geoData = await geoResponse.json();
+        location = geoData[0]?.lat ? { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) } : null;
+      }
 
       if (!location) {
         alert('Could not find location. Please try a different city name.');
