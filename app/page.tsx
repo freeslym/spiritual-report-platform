@@ -79,9 +79,11 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          latitude: location.lat,
-          longitude: location.lng,
+          email: formData.email,
+          name: formData.name,
+          date: formData.birthDate,
+          time: formData.birthTime,
+          location: formData.birthCity,
         }),
       });
 

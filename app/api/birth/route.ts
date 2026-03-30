@@ -1,68 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { calculateNatalChart } from '@/lib/astrology';
+import { geocodeLocation, parseBirthDateTime } from '@/lib/geocoding';
 
-// 出生信息录入接口（简化测试版）
+// 出生信息录入接口
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { 
       email, 
       name,
-      birthDate, 
-      birthTime, 
-      birthCity,
-      latitude,
-      longitude,
-      timezone 
+      date,      // YYYY-MM-DD 格式
+      time,      // HH:MM 格式
+      location,  // 城市名称
     } = body;
 
-    console.log('Birth request received:', { email, name, birthDate, latitude, longitude });
+    console.log('Birth request received:', { email, name, date, time, location });
 
-    // 返回模拟数据
-    const mockUserId = 'mock_user_' + Date.now();
-    
-    const mockNatalChart = {
-      planets: {
-        sun: { sign: 5, signDegree: 25.3, longitude: 85.3 }, // Leo
-        moon: { sign: 9, signDegree: 12.7, longitude: 282.7 }, // Capricorn
-        mercury: { sign: 5, signDegree: 10.2, longitude: 70.2 },
-        venus: { sign: 3, signDegree: 28.5, longitude: 58.5 },
-        mars: { sign: 7, signDegree: 15.8, longitude: 225.8 },
-        jupiter: { sign: 2, signDegree: 8.4, longitude: 38.4 },
-        saturn: { sign: 10, signDegree: 22.1, longitude: 312.1 },
-        uranus: { sign: 0, signDegree: 5.6, longitude: 5.6 },
-        neptune: { sign: 9, signDegree: 18.3, longitude: 288.3 },
-        pluto: { sign: 7, signDegree: 25.9, longitude: 235.9 },
-      },
-      ascendant: 30.5, // ~Taurus
-      midheaven: 320.8, // ~Aquarius
-      houses: [
-        { cusp: 30.5, sign: 1 },
-        { cusp: 60.2, sign: 2 },
-        { cusp: 90.8, sign: 3 },
-        { cusp: 120.5, sign: 4 },
-        { cusp: 150.2, sign: 5 },
-        { cusp: 180.8, sign: 6 },
-        { cusp: 210.5, sign: 7 },
-        { cusp: 240.2, sign: 8 },
-        { cusp: 270.8, sign: 9 },
-        { cusp: 300.5, sign: 10 },
-        { cusp: 330.2, sign: 11 },
-        { cusp: 360.0, sign: 0 },
-      ],
-    };
+    if (!date || !time || !location) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields: date, time, location' },
+        { status: 400 }
+      );
+    }
 
-    const freeSummary = generateFreeSummary(mockNatalChart);
+    // 1. 地理编码：获取经纬度和时区
+    const coords = await geocodeLocation(location);
+    console.log('Geocoding result:', coords);
+
+    // 2. 解析出生时间（转换为UTC）
+    const utcDate = parseBirthDateTime(date, time, coords.timezone);
+    console.log('UTC Date:', utcDate.toISOString());
+
+    // 3. 计算本命盘
+    const natalChart = calculateNatalChart(utcDate, coords.lat, coords.lon);
+    console.log('Natal chart calculated:', {
+      sun: natalChart.planets.sun,
+      ascendant: natalChart.ascendant,
+    });
+
+    // 4. 生成免费摘要
+    const freeSummary = generateFreeSummary(natalChart);
 
     return NextResponse.json({
       success: true,
-      userId: mockUserId,
-      natalChart: mockNatalChart,
+      userId: 'user_' + Date.now(),
+      natalChart: {
+        planets: natalChart.planets,
+        ascendant: natalChart.ascendant,
+        midheaven: natalChart.midheaven,
+        houses: natalChart.houses,
+      },
       freeSummary,
     });
   } catch (error) {
     console.error('Birth data error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to process birth data' },
+      { success: false, error: 'Failed to process birth data: ' + String(error) },
       { status: 500 }
     );
   }
