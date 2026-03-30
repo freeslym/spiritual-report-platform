@@ -86,26 +86,9 @@ export default function ResultPage() {
   }, [router]);
 
   const handlePurchase = async (productType: string) => {
-    setLoading(true);
-    const userId = localStorage.getItem('userId');
-    
-    try {
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, productType }),
-      });
-      
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      alert('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // TODO: Skip payment for testing - directly mark as paid
+    localStorage.setItem('paymentStatus', 'paid');
+    router.push('/report/success');
   };
 
   if (!natalChart) {
