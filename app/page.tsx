@@ -3,78 +3,75 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { LOCATIONS, getCityCoords, Country, Region, City } from '@/lib/locations';
 
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  // 表单数据
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     birthDate: '',
     birthTime: '12:00',
-    birthCity: '',
   });
+  
+  // 级联选择状态
+  const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  
+  // 当前可选的地区和城市
+  const [availableRegions, setAvailableRegions] = useState<Region[]>([]);
+  const [availableCities, setAvailableCities] = useState<City[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // 国家选择变化时，更新可用地区
+  useEffect(() => {
+    if (selectedCountry) {
+      const country = LOCATIONS.find(c => c.name === selectedCountry);
+      setAvailableRegions(country?.regions || []);
+      setSelectedRegion('');
+      setSelectedCity('');
+      setAvailableCities([]);
+    } else {
+      setAvailableRegions([]);
+      setSelectedRegion('');
+      setSelectedCity('');
+      setAvailableCities([]);
+    }
+  }, [selectedCountry]);
+
+  // 地区选择变化时，更新可用城市
+  useEffect(() => {
+    if (selectedCountry && selectedRegion) {
+      const country = LOCATIONS.find(c => c.name === selectedCountry);
+      const region = country?.regions.find(r => r.name === selectedRegion);
+      setAvailableCities(region?.cities || []);
+      setSelectedCity('');
+    } else {
+      setAvailableCities([]);
+      setSelectedCity('');
+    }
+  }, [selectedCountry, selectedRegion]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 验证位置是否已选择
+    if (!selectedCountry || !selectedRegion || !selectedCity) {
+      alert('请先选择出生国家/地区/城市');
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      // 本地常用城市列表作为后备方案（先尝试本地匹配，避免API限制）
-      const localCities: Record<string, { lat: number; lng: number; tz: number }> = {
-        "beijing": { lat: 39.9042, lng: 116.4074, tz: 8 },
-        "北京": { lat: 39.9042, lng: 116.4074, tz: 8 },
-        "shanghai": { lat: 31.2304, lng: 121.4737, tz: 8 },
-        "上海": { lat: 31.2304, lng: 121.4737, tz: 8 },
-        "new york": { lat: 40.7128, lng: -74.0060, tz: -5 },
-        "纽约": { lat: 40.7128, lng: -74.0060, tz: -5 },
-        "london": { lat: 51.5074, lng: -0.1278, tz: 0 },
-        "伦敦": { lat: 51.5074, lng: -0.1278, tz: 0 },
-        "tokyo": { lat: 35.6762, lng: 139.6503, tz: 9 },
-        "东京": { lat: 35.6762, lng: 139.6503, tz: 9 },
-        "los angeles": { lat: 34.0522, lng: -118.2437, tz: -8 },
-        "洛杉矶": { lat: 34.0522, lng: -118.2437, tz: -8 },
-        "paris": { lat: 48.8566, lng: 2.3522, tz: 1 },
-        "巴黎": { lat: 48.8566, lng: 2.3522, tz: 1 },
-        "singapore": { lat: 1.3521, lng: 103.8198, tz: 8 },
-        "新加坡": { lat: 1.3521, lng: 103.8198, tz: 8 },
-        "hong kong": { lat: 22.3193, lng: 114.1694, tz: 8 },
-        "香港": { lat: 22.3193, lng: 114.1694, tz: 8 },
-        "sydney": { lat: -33.8688, lng: 151.2093, tz: 10 },
-        "悉尼": { lat: -33.8688, lng: 151.2093, tz: 10 }
-      };
-      
-      const lowerCity = formData.birthCity.toLowerCase().trim();
-      let location = localCities[lowerCity] ? { 
-        lat: localCities[lowerCity].lat, 
-        lng: localCities[lowerCity].lng 
-      } : null;
-
-      // 本地没找到，再尝试 Nominatim API
-      if (!location) {
-        const geoResponse = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.birthCity)}&limit=1`,
-          {
-            headers: {
-              "User-Agent": "Trinity-Report-Platform/1.0 (agent@openclaw.ai)" // Nominatim 要求必须有 User-Agent
-            }
-          }
-        );
-        const geoData = await geoResponse.json();
-        location = geoData[0]?.lat ? { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) } : null;
-      }
-
-      if (!location) {
-        alert('Could not find location. Please try a different city name.');
-        setLoading(false);
-        return;
-      }
-
       const response = await fetch('/api/birth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,7 +80,7 @@ export default function HomePage() {
           name: formData.name,
           date: formData.birthDate,
           time: formData.birthTime,
-          location: formData.birthCity,
+          location: selectedCity,
         }),
       });
 
@@ -239,24 +236,70 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="group">
-                <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Birth City</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.birthCity}
-                  onChange={(e) => setFormData({...formData, birthCity: e.target.value})}
-                  className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
-                           focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
-                           outline-none transition-all duration-300 text-white placeholder-purple-300/20
-                           group-hover:bg-white/10 group-hover:border-white/20"
-                  placeholder="e.g. San Francisco, CA"
-                />
+              {/* 级联选择：国家/地区/城市 */}
+              <div className="space-y-3">
+                <div className="group">
+                  <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Country / 国家</label>
+                  <select
+                    required
+                    value={selectedCountry}
+                    onChange={(e) => setSelectedCountry(e.target.value)}
+                    className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                             focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                             outline-none transition-all duration-300 text-white
+                             group-hover:bg-white/10 group-hover:border-white/20"
+                  >
+                    <option value="">-- Select --</option>
+                    {LOCATIONS.map(country => (
+                      <option key={country.name} value={country.name}>{country.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {availableRegions.length > 0 && (
+                  <div className="group">
+                    <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">Region / 地区</label>
+                    <select
+                      required
+                      value={selectedRegion}
+                      onChange={(e) => setSelectedRegion(e.target.value)}
+                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                               focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                               outline-none transition-all duration-300 text-white
+                               group-hover:bg-white/10 group-hover:border-white/20"
+                    >
+                      <option value="">-- Select --</option>
+                      {availableRegions.map(region => (
+                        <option key={region.name} value={region.name}>{region.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {availableCities.length > 0 && (
+                  <div className="group">
+                    <label className="block text-purple-200/60 text-xs mb-2 uppercase tracking-[0.2em]">City / 城市</label>
+                    <select
+                      required
+                      value={selectedCity}
+                      onChange={(e) => setSelectedCity(e.target.value)}
+                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl 
+                               focus:border-purple-500/50 focus:bg-white/10 focus:ring-0 focus:outline-none
+                               outline-none transition-all duration-300 text-white
+                               group-hover:bg-white/10 group-hover:border-white/20"
+                    >
+                      <option value="">-- Select --</option>
+                      {availableCities.map(city => (
+                        <option key={city.name} value={city.name}>{city.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !selectedCountry || !selectedRegion || !selectedCity}
                 className="w-full py-5 mt-4 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient rounded-2xl 
                          font-medium text-lg shadow-2xl shadow-purple-900/50
                          hover:shadow-purple-500/30 hover:scale-[1.02] 

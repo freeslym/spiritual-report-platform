@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateNatalChart } from '@/lib/astrology';
-import { geocodeLocation, parseBirthDateTime } from '@/lib/geocoding';
+import { LOCATIONS, getCityCoords } from '@/lib/locations';
+import { parseBirthDateTime } from '@/lib/geocoding';
 
 // 出生信息录入接口
 export async function POST(request: NextRequest) {
@@ -23,9 +24,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. 地理编码：获取经纬度和时区
-    const coords = await geocodeLocation(location);
-    console.log('Geocoding result:', coords);
+    // 1. 从结构化城市数据中查找坐标
+    let coords = null;
+    for (const country of LOCATIONS) {
+      for (const region of country.regions) {
+        const city = region.cities.find(c => c.name === location);
+        if (city) {
+          coords = { lat: city.lat, lon: city.lon, timezone: city.timezone };
+          break;
+        }
+      }
+      if (coords) break;
+    }
+    
+    // 找不到的话默认用北京
+    if (!coords) {
+      coords = { lat: 39.9042, lon: 116.4074, timezone: 8 };
+    }
+    
+    console.log('Using coordinates:', coords);
 
     // 2. 解析出生时间（转换为UTC）
     const utcDate = parseBirthDateTime(date, time, coords.timezone);
